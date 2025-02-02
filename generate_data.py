@@ -1,10 +1,12 @@
 import numpy as np
 import pandas as pd
+import os
+
+# Tworzymy folder Data, jeśli nie istnieje
+if not os.path.exists("Data"):
+    os.makedirs("Data")
 
 def generate_actuator_data(num_samples=1000, warning_threshold=0.03, failure_threshold=0.1):
-    """
-    Generuje dane dla siłowników pneumatycznych. Oznacza ostrzeżenia i awarie.
-    """
     np.random.seed(42)
     data = []
     for i in range(num_samples):
@@ -21,18 +23,11 @@ def generate_actuator_data(num_samples=1000, warning_threshold=0.03, failure_thr
 
         warning = 1 if not failure and (abs(pressure - 5) > warning_threshold or abs(flow - 50) > 2) else 0
 
-        data.append({
-            "cycle": i + 1,
-            "pressure": pressure,
-            "flow": flow,
-            "speed": speed,
-            "warning": warning,
-            "failure": failure
-        })
-    
-    return pd.DataFrame(data)
+        data.append({"cycle": i + 1, "pressure": pressure, "flow": flow, "speed": speed, "warning": warning, "failure": failure})
 
-# Generowanie danych
-actuator_data = generate_actuator_data()
-actuator_data.to_csv("actuator_data.csv", index=False)
-print("Dane siłownika zapisane w 'actuator_data.csv'.")
+    df = pd.DataFrame(data)
+    df.to_csv("Data/actuator_data.csv", index=False)
+    print("Dane zapisane w Data/actuator_data.csv.")
+
+if __name__ == "__main__":
+    generate_actuator_data()

@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 class PIDController:
     def __init__(self, kp, ki, kd):
@@ -16,15 +17,15 @@ class PIDController:
         return self.kp * error + self.ki * self.integral + self.kd * derivative
 
 def run_pid(data):
-    pid = PIDController(kp=1.2, ki=0.05, kd=0.03)
+    pid = PIDController(kp=1.2, ki=0.02, kd=0.01)  # Zmniejszone KI, KD, aby uniknąć skoków
     results = []
     for _, row in data.iterrows():
         pressure_control = pid.compute(5, row["pressure"])
         flow_control = pid.compute(50, row["flow"])
         speed_control = pid.compute(1.0, row["speed"])
 
-        optimized_warning = 1 if abs(pressure_control) > 0.15 or abs(flow_control) > 4 else 0
-        optimized_failure = 1 if abs(pressure_control) > 0.45 or abs(flow_control) > 9 else 0
+        optimized_warning = 1 if abs(pressure_control) > 0.2 or abs(flow_control) > 3 else 0
+        optimized_failure = 1 if abs(pressure_control) > 0.5 or abs(flow_control) > 8 else 0
 
         results.append({
             "cycle": row["cycle"],
@@ -32,10 +33,9 @@ def run_pid(data):
             "optimized_failure": optimized_failure
         })
 
-    df = pd.DataFrame(results)
-    df.to_csv("Data/pid_results.csv", index=False)
-    print("Wyniki PID zapisane w pid_results.csv.")
+    return pd.DataFrame(results)
 
-if __name__ == "__main__":
-    data = pd.read_csv("Data/actuator_data.csv")
-    run_pid(data)
+data = pd.read_csv("Data/actuator_data.csv")
+pid_results = run_pid(data)
+pid_results.to_csv("Data/pid_results.csv", index=False)
+print("PID model results saved.")
